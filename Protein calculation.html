@@ -1,0 +1,270 @@
+<html>
+<head>
+<style>
+
+h1 {
+text-align: center;
+font-size: 22px;
+color: black;
+}
+
+p {
+font-size: 16px;
+font-family: Microsoft Yahei;
+color: black;
+text-align: left;
+}
+
+input {
+width: 200px;
+height: 30px;
+font-size: 20px;
+font-family: Microsoft Yahei;
+border: 3px solid #666fff;
+box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+button {
+width: 120px;
+height: 40px;
+font-size: 20px;
+font-family: Microsoft Yahei;
+border-radius: 10px;
+color: white;
+border: none;
+}
+
+table {
+border-collapse: collapse;
+width: 360px;
+font-size: 15px;
+font-family: Microsoft Yahei;
+margin: 0 auto;
+} 
+
+
+th, td {
+padding: 10px;
+text-align: center;
+}
+
+.red {
+color: red;
+}
+
+.container {
+width: 400px;
+margin: 0 auto;
+background-color: #f0f8ff;
+padding: 15px;
+border-radius: 20px;
+box-shadow: 5px 5px 10px gray;
+}
+</style>
+</head>
+<body>
+<div style=" 
+background-color: white;
+text-align: center;
+padding: 2px;
+">
+<img src='https://z1.ax1x.com/2023/11/23/piwiCVI.jpg' alt="高杨" width="160px" height="160px">
+</div>
+
+
+
+<h1>Protein Loading Calculator 蛋白上样计算器</h1>
+<div class="container">
+<p style="font-weight: bold;">蛋白测定时的稀释倍数</p>
+<input type="number" id="Z" value="10" required style="background-color: white;">
+
+<p style="font-weight: bold;">每个胶孔准备上多少ug蛋白？</p>
+<input type="number" id="F" value="30" style="background-color: white;">
+<p style="font-weight: bold;">你每个胶孔想点多少μl？ （建议1.0mm的胶输入15μl，1.5mm的胶输入20μl）</p>
+<input type="number" id="H" value="20" style="background-color: white;">
+<p style="font-weight: bold;">你想一共煮多少μl的蛋白？（多煮点能上好几次样）</p>
+<input type="number" id="G" value="40" style="background-color: white;">
+<p style="font-weight: bold;">A562（标曲from SZY，y=0.9164x +0.1381, R²=0.9995, y代表吸光度值，x代表蛋白浓度）</p>
+<input type="number" id="X" style="background-color: ;">
+
+<button id="submit" onclick="calculate()" style="background-color: #6699ff;" >Enter</button>
+<button id="range" onclick="showRange()"  style="background-color: #6699ff;">A562范围</button>
+<p id="result"></p>
+<table id="table">
+<tr>
+<th>蛋白浓度</th>
+<th>样品体积</th>
+<th>PBS体积</th>
+<th>Loading体积</th>
+</tr>
+</table>
+<button id="export" onclick="exportTable()" style="background-color: #00ccff;">导出</button>
+<button id="clear" onclick="clearTable()" style="background-color: #ff3333;">清空</button>
+<!-- 在min按钮上添加一个onmouseover和一个onmouseout事件，用于显示和隐藏提示 -->
+<button id="min" onclick="calculateMin()" style="background-color: #ff6633;" onmouseover="showTip()" onmouseout="hideTip()">MAX</button>
+
+<!-- 在min按钮后面添加一个div标签，用于存放提示信息，设置初始为隐藏状态 -->
+<div id="tip" style="display: none;">
+<!-- 使用一个div标签，设置背景颜色，边框，圆角，阴影，内边距等样式 -->
+<div style="background-color: lightblue; border: 2px solid black; border-radius: 10px; box-shadow: 3px 3px 5px gray; padding: 10px;">
+<!-- 使用一个h3标签，设置字体大小，字体颜色，文本居中等样式 -->
+<h3 style="font-size: 18px; color: white; text-align: center;">温馨提示</h3>
+<!-- 使用一个p标签，设置字体大小，字体颜色，文本对齐等样式 -->
+<p style="font-size: 16px; color: black; text-align: left;">当你的列表中PBS出现标红的负值时，说明你的蛋白浓度过低，无法达到你想要的上样量。此时，你可以点击<span style="color: red; font-weight: bold;">MAX</span>按钮，计算出单孔最大上样蛋白量，并在按钮后面显示出来。同时，你可以修改浅黄色输入框，减小每个胶孔准备上的蛋白量，然后重新输入你的A562，重新计算。希望这个提示能帮助你更好地使用这个计算器。blush</p>
+</div>
+<script>
+function showTip() {
+// 获取tip元素
+var tip = document.getElementById("tip");
+// 设置tip元素的display属性为block，使其可见
+tip.style.display = "block";
+// 获取min按钮元素
+var minButton = document.getElementById("min");
+// 获取min按钮的位置和尺寸
+var rect = minButton.getBoundingClientRect();
+// 设置tip元素的位置，使其跟随鼠标
+tip.style.position = "absolute";
+tip.style.left = rect.left + "px";
+tip.style.top = rect.bottom + 10 + "px";
+}
+
+// 定义一个hideTip函数，用于隐藏提示
+function hideTip() {
+// 获取tip元素
+var tip = document.getElementById("tip");
+// 设置tip元素的display属性为none，使其隐藏
+tip.style.display = "none";
+}
+
+
+function calculate() {
+var Z = parseFloat(document.getElementById("Z").value);
+var F = parseFloat(document.getElementById("F").value);
+var H = parseFloat(document.getElementById("H").value);
+var G = parseFloat(document.getElementById("G").value);
+var X = parseFloat(document.getElementById("X").value);
+if (isNaN(Z)) {
+document.getElementById("result").innerHTML = "<span style='color: red;'>请先输入稀释倍数</span>";
+} else if (isNaN(Z) || isNaN(F) || isNaN(G) || isNaN(X)) {
+document.getElementById("result").innerHTML = "请输入有效的数值";
+} else {
+var Y = (X - 0.1381) / 0.9164;
+var A = Z * Y;
+var B = (F*G) / (A*H);
+var D = G / 5;
+var C = G - D - B;
+A = A.toFixed(3);
+B = B.toFixed(3);
+C = C.toFixed(3);
+D = D.toFixed(3);
+document.getElementById("result").innerHTML = "计算成功";
+var table = document.getElementById("table");
+var row = table.insertRow(-1);
+var cell1 = row.insertCell(0);
+var cell2 = row.insertCell(1);
+var cell3 = row.insertCell(2);
+var cell4 = row.insertCell(3);
+
+if (A < 0) {
+cell1.innerHTML = "<span class='red'>" + A + "</span>";
+alert("蛋白浓度过低");
+} else {
+cell1.innerHTML = A;
+}
+cell2.innerHTML = B;
+if (C < 0) {
+cell3.innerHTML = "<span class='red'>" + C + "</span>";
+document.getElementById("result").innerHTML = "<span style='color: red;'>该样本浓度过低，建议减小上样蛋白量或加大点样体积</span>";
+} else {
+cell3.innerHTML = C;
+}
+cell4.innerHTML = D;
+document.getElementById("X").value = "";
+}
+}
+
+function showRange() {
+var Z = parseFloat(document.getElementById("Z").value);
+var F = parseFloat(document.getElementById("F").value);
+var H = parseFloat(document.getElementById("H").value);
+// 计算Q值
+var Q = (0.9164 * F) / (Z * H * 0.8)+0.1381;
+Q = Q.toFixed(3);
+// 弹出提示信息
+alert("A562须大于" + Q);
+}
+
+function exportTable() {
+var table = document.getElementById("table");
+var rows = table.rows;
+var data = "";
+for (var i = 0; i < rows.length; i++) {
+var cells = rows[i].cells;
+for (var j = 0; j < cells.length; j++) {
+data += cells[j].innerHTML + "\t";
+}
+data += "\n";
+}
+var blob = new Blob([data], {type: "text/plain;charset=utf-8"});
+var url = URL.createObjectURL(blob);
+var link = document.createElement("a");
+link.href = url;
+link.download = "table.txt";
+link.click();
+}
+
+document.getElementById("X").addEventListener("keyup", function(event) {
+if (event.keyCode === 13) {
+event.preventDefault();
+document.getElementById("submit").click();
+}
+});
+
+
+function clearTable() {
+var table = document.getElementById("table");
+var rows = table.rows.length;
+for (var i = rows - 1; i > 0; i--) {
+table.deleteRow(i);
+}
+}
+
+
+function calculateMin() {
+var table = document.getElementById("table");
+var rows = table.rows.length;
+if (rows > 1) {
+var min = Number.MAX_VALUE;
+for (var i = 1; i < rows; i++) {
+var A = parseFloat(table.rows[i].cells[0].innerText);
+if (A < min) {
+min = A;
+}
+}
+var J = min;
+var H = parseFloat(document.getElementById("H").value);
+var K = J * 0.8 * H;
+K = K.toFixed(3);
+// 创建一个span标签，用于显示K值
+var span = document.createElement("span");
+span.id = "K";
+span.style.fontSize = "20px";
+span.style.fontFamily = "KaiTi";
+span.style.marginLeft = "10px";
+span.innerHTML = "每孔最大上样蛋白量为" + K + "μg";
+// 将span标签添加到min按钮的后面
+var minButton = document.getElementById("min");
+// 如果已经存在span标签，先删除它
+var oldSpan = document.getElementById("K");
+if (oldSpan) {
+oldSpan.parentNode.removeChild(oldSpan);
+}
+minButton.parentNode.insertBefore(span, minButton.nextSibling);
+} else {
+alert("请先计算出至少一组数据");
+}
+}
+
+</script>
+</body>
+</html>
