@@ -84,7 +84,7 @@ padding: 2px;
 <input type="number" id="H" value="20" style="background-color: white;">
 <p style="font-weight: bold;">你想一共煮多少μl的蛋白？（多煮点能上好几次样）</p>
 <input type="number" id="G" value="40" style="background-color: white;">
-<p style="font-weight: bold;">A562（标曲from SZY，y=0.9164x +0.1381, R²=0.9995, y代表吸光度值，x代表蛋白浓度）</p>
+<p style="font-weight: bold;">A562（标曲from GY，y=0.7601x +0.1974, R²=0.9963, y代表吸光度值，x代表蛋白浓度）</p>
 <input type="number" id="X" style="background-color: ;">
 
 <button id="submit" onclick="calculate()" style="background-color: #6699ff;" >Enter</button>
@@ -148,7 +148,7 @@ document.getElementById("result").innerHTML = "<span style='color: red;'>请先�
 } else if (isNaN(Z) || isNaN(F) || isNaN(G) || isNaN(X)) {
 document.getElementById("result").innerHTML = "请输入有效的数值";
 } else {
-var Y = (X - 0.1381) / 0.9164;
+var Y = (X - 0.1974) / 0.7601;
 var A = Z * Y;
 var B = (F*G) / (A*H);
 var D = G / 5;
